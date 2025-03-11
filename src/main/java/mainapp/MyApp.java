@@ -1,5 +1,6 @@
 package mainapp;
 
+import java.util.regex.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -24,20 +25,41 @@ public class MyApp {
         }
     }
 
-    // Method to check if there's at least one commit in the repository
-    public static String atleastOneCommit() {
-        String atleastOneCommit;
+    public static String checkCommitMessages() {
+        String commitLog;
         try {
-            System.out.println("Checking if at least one commit exists...");
-            atleastOneCommit = executeCommand("git log --oneline").trim();
-            System.out.println("At least one commit: " + atleastOneCommit);
-            if (!atleastOneCommit.isEmpty()) {
+            System.out.println("Checking for specific commit messages...");
+            // Get the commit log
+            commitLog = executeCommand("git log --oneline").trim();
+            System.out.println("Commit log: " + commitLog);
+
+            // Compile patterns for each specific commit message
+            Pattern firstCommitPattern = Pattern.compile("First commit", Pattern.CASE_INSENSITIVE);
+            Pattern secondCommitPattern = Pattern.compile("Second commit", Pattern.CASE_INSENSITIVE);
+            Pattern thirdCommitPattern = Pattern.compile("Third commit", Pattern.CASE_INSENSITIVE);
+
+            // Match against the commit log
+            Matcher firstCommitMatcher = firstCommitPattern.matcher(commitLog);
+            Matcher secondCommitMatcher = secondCommitPattern.matcher(commitLog);
+            Matcher thirdCommitMatcher = thirdCommitPattern.matcher(commitLog);
+
+            boolean firstFound = firstCommitMatcher.find();
+            boolean secondFound = secondCommitMatcher.find();
+            boolean thirdFound = thirdCommitMatcher.find();
+
+            // Return results based on matches
+            if (firstFound && secondFound && thirdFound) {
+                System.out.println("All required commit messages found.");
                 return "true";
             } else {
+                System.out.println("One or more required commit messages are missing:");
+                if (!firstFound) System.out.println("- Missing: First commit");
+                if (!secondFound) System.out.println("- Missing: Second commit");
+                if (!thirdFound) System.out.println("- Missing: Third commit");
                 return "false";
             }
         } catch (Exception e) {
-            System.out.println("Error in atleastOneCommit method: " + e.getMessage());
+            System.out.println("Error in checkCommitMessages method: " + e.getMessage());
             return "";
         }
     }
@@ -60,21 +82,21 @@ public class MyApp {
         }
     }
 
-    // Method to check if a commit has been successfully rebased
-    public static String rebaseSuccess() {
-        String rebaseSuccess;
+    // Method to check if a commit has been successfully reverted
+    public static String revertSuccess() {
+        String revertSuccess;
         try {
-            System.out.println("Checking if the last commit has 'Rebased' in the message...");
-            rebaseSuccess = executeCommand("git log --oneline | head -n 1").trim();
-            System.out.println("Latest commit: " + rebaseSuccess);
-            // Checking if the latest commit message contains "Rebased"
-            if (rebaseSuccess.contains("Rebased")) {
+            System.out.println("Checking if the last commit has 'Revert' in the message...");
+            revertSuccess = executeCommand("git log --oneline | head -n 1").trim();
+            System.out.println("Latest commit: " + revertSuccess);
+            // Checking if the latest commit message contains "Revert"
+            if (revertSuccess.contains("Revert")) {
                 return "true";
             } else {
                 return "false";
             }
         } catch (Exception e) {
-            System.out.println("Error in rebaseSuccess method: " + e.getMessage());
+            System.out.println("Error in revertSuccess method: " + e.getMessage());
             return "";
         }
     }
@@ -91,8 +113,8 @@ public class MyApp {
             }
 
             // Check for at least one commit
-            String atleastOneCommit = atleastOneCommit();
-            if (atleastOneCommit.equals("true")) {
+            String checkCommit = checkCommitMessages();
+            if (checkCommit.equals("true")) {
                 System.out.println("Changes have been committed.");
             } else {
                 System.out.println("No changes committed.");
@@ -107,12 +129,12 @@ public class MyApp {
                 System.out.println("feature_branch does not exist.");
             }
 
-            // Check if rebase was successful
-            String rebaseSuccess = rebaseSuccess();
-            if (rebaseSuccess.equals("true")) {
-                System.out.println("Rebase operation was successful.");
+            // Check if revert was successful
+            String revertSuccess = revertSuccess();
+            if (revertSuccess.equals("true")) {
+                System.out.println("revert operation was successful.");
             } else {
-                System.out.println("Rebase operation failed.");
+                System.out.println("revert operation failed.");
             }
 
         } catch (Exception e) {
@@ -122,7 +144,6 @@ public class MyApp {
 
     private static String executeCommand(String command) throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.directory(new File("utils")); // Ensure this is correct
         processBuilder.command("bash", "-c", command);
         System.out.println("Executing command: " + command);
         Process process = processBuilder.start();
@@ -145,133 +166,3 @@ public class MyApp {
         }
     }
 }
-
-// package mainapp;
-
-// import java.io.BufferedReader;
-// import java.io.File;
-// import java.io.InputStreamReader;
-
-// public class MyApp {
-
-// 	public static String directoryExists() {
-// 		String gitDirectoryExists;
-// 		try {
-// 			gitDirectoryExists = executeCommand("git rev-parse --is-inside-work-tree").trim();
-// 			if (gitDirectoryExists.equals("true")) {
-// 				return "true";
-// 			} else {
-// 				return "false";
-// 			}
-// 		} catch (Exception e) {
-// 			return "";
-// 		}
-// 	}
-
-// 	public static String atleastOneCommit() {
-// 		String atleastOneCommit;
-// 		try {
-// 			atleastOneCommit = executeCommand("git log --oneline").trim();
-// 			if (!atleastOneCommit.isEmpty()) {
-// 				return "true";
-// 			} else {
-// 				return "false";
-// 			}
-// 		} catch (Exception e) {
-// 			return "";
-// 		}
-// 	}
-
-// 	public static String tempBranch() {
-// 		String tempBranchExists;
-// 		try {
-// 			tempBranchExists = executeCommand("git branch --list tmpbranch");
-// 			if (tempBranchExists.contains("tmpbranch")) {
-// 				return "true";
-// 			} else {
-// 				return "false";
-// 			}
-// 		} catch (Exception e) {
-// 			return "";
-// 		}
-// 	}
-
-// 	public static String mergeBase() {
-// 		String mergeBase;
-// 		try {
-// 			mergeBase = executeCommand("git merge-base main tmpbranch").trim();
-// 			String tmpBranchLastCommit = executeCommand("git rev-parse tmpbranch").trim();
-// 			if (mergeBase.equals(tmpBranchLastCommit)) {
-// 				return "true";
-// 			} else {
-// 				return "false";
-// 			}
-// 		} catch (Exception e) {
-// 			return "";
-// 		}
-// 	}
-
-// 	public static void main(String[] args) {
-// 		try {
-// 			// Check if .git directory exists
-// 			String gitDirectoryExists = directoryExists();
-// 			if (gitDirectoryExists.equals("true")) {
-// 				System.out.println("Git repository initialized successfully.");
-// 			} else {
-// 				System.out.println("Git repository not initialized.");
-// 				return;
-// 			}
-
-// //			// Check for commit (This checks if there's at least one commit)
-// 			String atleastOneCommit = atleastOneCommit();
-// 			if (atleastOneCommit.equals("true")) {
-// 				System.out.println("Changes have been committed.");
-// 			} else {
-// 				System.out.println("No changes committed.");
-// 				return;
-// 			}
-
-// //			// Check if tmpbranch exists
-// 			String tempBranchExists = tempBranch();
-// 			if (tempBranchExists.equals("true")) {
-// 				System.out.println("tmpbranch exists.");
-// 			} else {
-// 				System.out.println("tmpbranch does not exist.");
-// 			}
-
-// //			// Check if tmpbranch has been merged into main
-// //			// Note: This is a simplistic check. It assumes if tmpbranch is not ahead of
-// //			// main, it's merged.
-// 			String mergeBase = mergeBase();
-// 			if (mergeBase.equals("true")) {
-// 				System.out.println("tmpbranch has been merged into main.");
-// 			} else {
-// 				System.out.println("tmpbranch has not been merged into main.");
-// 			}
-// 		} catch (Exception e) {
-// 			e.printStackTrace();
-// 		}
-// 	}
-
-// 	private static String executeCommand(String command) throws Exception {
-// 		ProcessBuilder processBuilder = new ProcessBuilder();
-// 		processBuilder.directory(new File("utils"));
-// 		processBuilder.command("bash", "-c", command);
-// 		Process process = processBuilder.start();
-
-// 		StringBuilder output = new StringBuilder();
-// 		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-// 		String line;
-// 		while ((line = reader.readLine()) != null) {
-// 			output.append(line).append("\n");
-// 		}
-
-// 		int exitVal = process.waitFor();
-// 		if (exitVal == 0) {
-// 			return output.toString();
-// 		} else {
-// 			throw new RuntimeException("Failed to execute command: " + command);
-// 		}
-// 	}
-// }
